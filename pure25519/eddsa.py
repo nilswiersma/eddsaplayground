@@ -516,3 +516,47 @@ def verify(vkbytes, sig, msg):
     if not rc:
         raise ValueError("rc != 0", rc)
     return True
+
+
+# Added by me below
+
+def scalarmult_element_it(pt, n): # extended->extended
+    # iterative version of `scalarmult_element(pt, n)`
+    ret = xform_affine_to_extended((0,1))
+    for i in f'{n:0252b}':
+        ret = double_element(ret)
+        if i == '1':
+            ret = _add_elements_nonunfied(ret, pt)
+    return ret
+
+def scalarmult_element_swap(pt, n): # extended->extended
+    # swap version of `scalarmult_element(pt, n)`
+    # https://github.com/21dotco/two1-python/blob/master/two1/crypto/ecdsa_python.py#L31
+    assert n >= 0
+    if n==0:
+        return xform_affine_to_extended((0,1)), pt
+
+    r0, p = scalarmult_element_swap(pt, n>>1)
+
+    if n & 1:
+        r0 = _add_elements_nonunfied(r0, p)
+        p = double_element(p)
+        return r0, p
+    else:
+        p = _add_elements_nonunfied(r0, p)
+        r0 = double_element(r0)
+        return r0, p
+
+def scalarmult_element_it_swap(pt, n): # extended->extended
+    # iterative swap version of `scalarmult_element(pt, n)`
+    # https://github.com/21dotco/two1-python/blob/master/two1/crypto/ecdsa_python.py#L31
+    r0 = xform_affine_to_extended((0,1))
+    p = pt
+    for i in f'{n:0252b}':
+        if i == '1':
+            r0 = _add_elements_nonunfied(r0, p)
+            p = double_element(p)
+        else:
+            p = _add_elements_nonunfied(r0, p)
+            r0 = double_element(r0)
+    return r0,p
