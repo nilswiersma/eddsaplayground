@@ -285,7 +285,7 @@ class Element(ElementOfUnknownGroup):
             return Zero
         # scalarmult(s=1) gets you self, which is a subgroup member
         # scalarmult(s<grouporder) gets you a different subgroup member
-        ret = Element(scalarmult_element(self.XYTZ, s))
+
         if 'scalarmult' in pure25519.config.verbose:
             (X1, Y1, Z1, T1) = self.XYTZ
             print('X1:        ', X1.to_bytes(32, 'little').hex())
@@ -293,27 +293,23 @@ class Element(ElementOfUnknownGroup):
             print('Z1:        ', Z1.to_bytes(32, 'little').hex())
             print('T1:        ', T1.to_bytes(32, 'little').hex())
             print('s:         ', s.to_bytes(32, 'little').hex())
-            print('ret:       ', ret.to_bytes().hex())
 
-        # ret_it = Element(scalarmult_element_it(self.XYTZ, s))
-        # if 'scalarmult' in pure25519.config.verbose:
-        #     print('ret_it:    ', ret_it.to_bytes().hex())
-
-        # ret_it_swap,_ = scalarmult_element_it_swap(self.XYTZ, s)
-        # ret_it_swap = Element(ret_it_swap)
-        # if 'scalarmult' in pure25519.config.verbose:
-        #     print('ret_it_swp:', ret_it_swap.to_bytes().hex())
-
-        if pure25519.config.spa:
-            print('\nswap\n', end='', file=pure25519.config.spa_file)
-        ret_swap,_ = scalarmult_element_swap(self.XYTZ, s)
-        ret_swap = Element(ret_swap)
-        if 'scalarmult' in pure25519.config.verbose:
-            print('ret_swap:  ', ret_swap.to_bytes().hex())
+        if not pure25519.config.swap:
+            ret = Element(scalarmult_element(self.XYTZ, s))
+            if 'scalarmult' in pure25519.config.verbose:
+                (X1, Y1, Z1, T1) = self.XYTZ
+                print('ret:       ', ret.to_bytes().hex())
+        else:
+            ret_swap,_ = scalarmult_element_swap(self.XYTZ, s)
+            ret_swap = Element(ret_swap)
+            if 'scalarmult' in pure25519.config.verbose:
+                print('ret_swap:  ', ret_swap.to_bytes().hex())
+            ret = ret_swap
 
         if pure25519.config.spa:
             print('', file=pure25519.config.spa_file)
         return ret
+
 
     # negation and subtraction only make sense for the main subgroup
     def negate(self):
